@@ -15,6 +15,7 @@ function create_table(data) {
     let div = document.getElementById("main_div")
     let table = document.createElement("table")
     table.setAttribute("class", "tab")
+    table.setAttribute("id", "stocks_table")
     headers = Object.keys(data[0])
 
     const thead = table.createTHead()
@@ -37,7 +38,31 @@ function create_table(data) {
             cell.innerHTML = stock[key]
         }
     }
+
+    const new_row = tbody.insertRow(tbody.rows.length)
+    const button_cell = new_row.insertCell()
+    const button = document.createElement("button")
+    button.setAttribute("onclick", "add_row(this)")
+    button.innerHTML = "+"
+    button_cell.appendChild(button)
+
     div.appendChild(table)
+}
+
+function add_row(element) {
+
+    const row = element.parentNode.parentNode
+    row.setAttribute("new", "true")
+    
+    const header_row = document.getElementById("stocks_table").tHead.rows[0]
+    for (let i = 1; i < header_row.cells.length; i++) {
+        const cell = row.insertCell()
+        cell.setAttribute("onclick", "make_editable(this)")
+    }
+    row.cells[0].innerHTML = ""
+
+    make_editable(row.cells[0])
+
 }
 
 function make_editable(cell) {
@@ -61,8 +86,6 @@ function make_editable(cell) {
         button.setAttribute("onclick", "save_row(this)")
         button.innerHTML = "Save"
         button_cell.appendChild(button)
-        
-
         //mark this row as active
         row.setAttribute("active", true)
     }
@@ -70,6 +93,11 @@ function make_editable(cell) {
 
 function save_row(button) {
     const row = button.parentNode.parentNode
+    let post = false
+    if (row.getAttribute("new") == "true") {
+        post = true
+        row.setAttribute("new", "false")
+    }
 
     //add plus button
     button.remove()
@@ -83,7 +111,7 @@ function save_row(button) {
     }
     
     data = row2dict(row)
-    save_db(data)
+    save_db(data, post)
 }
 
 function row2dict(row) {
@@ -101,18 +129,22 @@ function row2dict(row) {
     return dict
 }
 
-
 function putListener () {
     data = JSON.parse(this.responseText)
 }
-
-function save_db(data) {
+function save_db(data, post=false) {
     /*
     save the data into the database via REST
     */
     let oReq = new XMLHttpRequest()
     oReq.addEventListener("load", putListener)
-    oReq.open("PUT", "/api/stock/" + data["symbol"])
+    if (post) {
+        oReq.open("POST", "/api/stock")
+    }
+    else {
+        oReq.open("PUT", "/api/stock/" + data["symbol"])
+    }
+    
     oReq.setRequestHeader('Content-type','application/json; charset=utf-8');
     oReq.send(JSON.stringify(data))
 }
