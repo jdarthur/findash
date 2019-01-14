@@ -1,0 +1,13 @@
+.tab {
+    border-collapse: collapse;
+    border: 1px solid black;
+}
+.tabheader {
+    background-color: #dedede;
+    margin-top: 8px;
+}
+
+td {
+    border: 1px solid black;
+    padding: 5px;
+}
