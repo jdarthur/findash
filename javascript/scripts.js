@@ -1,5 +1,5 @@
 function reqListener () {
-    data = JSON.parse(this.responseText)
+    let data = JSON.parse(this.responseText)
     create_table(data)
 }
 
@@ -8,6 +8,27 @@ function initialize() {
     let oReq = new XMLHttpRequest();
     oReq.addEventListener("load", reqListener);
     oReq.open("GET", "/api/stocks");
+    oReq.send();
+
+    get_sectors()
+}
+
+var sectors = []
+function sectListener () {
+    let data = JSON.parse(this.responseText)
+
+    for (let i = 0; i < data.length; i ++){
+        const name = data[i]['name']
+        sectors.push(name)
+    }
+    console.log(sectors)
+}
+
+function get_sectors() {
+    //console.log("test")
+    let oReq = new XMLHttpRequest();
+    oReq.addEventListener("load", sectListener);
+    oReq.open("GET", "/api/sectors");
     oReq.send();
 }
 
@@ -53,7 +74,7 @@ function add_row(element) {
 
     const row = element.parentNode.parentNode
     row.setAttribute("new", "true")
-    
+
     const header_row = document.getElementById("stocks_table").tHead.rows[0]
     for (let i = 1; i < header_row.cells.length; i++) {
         const cell = row.insertCell()
@@ -69,16 +90,45 @@ function make_editable(cell) {
     /*
     make a row editable i.e. change text data into input boxes
     */
-    
+
     const row = cell.parentNode
+    const table = row.parentNode.parentNode
+    const thead_row = table.tHead.rows[0]
+
+
     if ((row.getAttribute("active") != "true")) {
         for (let i = 0; i < row.cells.length; i++) {
+
+            let text_input = null
             const cell = row.cells[i]
-            text_input = document.createElement("input")
-            text_input.setAttribute("size", 10)
-            text_input.value = cell.innerHTML
+
+            if (thead_row.cells[i].innerHTML == "sector") {
+                text_input = document.createElement("select")
+
+                for (let j = 0; j < sectors.length; j++) {
+                    const option = document.createElement("option")
+                    option.value = sectors[j]
+                    option.text = sectors[j]
+
+                    if (cell.innerHTML == sectors[j]) {
+                        option.setAttribute("selected", "true")
+                    }
+
+                    text_input.appendChild(option)
+                }
+
+            }
+            else {
+
+
+                text_input = document.createElement("input")
+                text_input.setAttribute("size", 10)
+                text_input.value = cell.innerHTML
+
+            }
             cell.innerHTML = ""
             cell.appendChild(text_input)
+
         }
         //add plus button
         const button_cell = row.insertCell()
@@ -109,7 +159,7 @@ function save_row(button) {
         child = cell.childNodes[0]
         cell.innerHTML = child.value
     }
-    
+
     data = row2dict(row)
     save_db(data, post)
 }
@@ -124,7 +174,7 @@ function row2dict(row) {
     for (let i = 0; i < row.cells.length; i++) {
         const key = header_row.cells[i].innerHTML
         const cell_value = row.cells[i].innerHTML
-        dict[key] = cell_value 
+        dict[key] = cell_value
     }
     return dict
 }
@@ -144,7 +194,7 @@ function save_db(data, post=false) {
     else {
         oReq.open("PUT", "/api/stock/" + data["symbol"])
     }
-    
+
     oReq.setRequestHeader('Content-type','application/json; charset=utf-8');
     oReq.send(JSON.stringify(data))
 }
