@@ -11,17 +11,20 @@ function initialize() {
     oReq.send();
 
     get_sectors()
+    get_exchanges()
 }
 
-var sectors = []
+var dropdowns = {
+    "sector" : [],
+    "exchange" : []
+}
+
 function sectListener () {
     let data = JSON.parse(this.responseText)
-
     for (let i = 0; i < data.length; i ++){
         const name = data[i]['name']
-        sectors.push(name)
+        dropdowns.sector.push(name)
     }
-    console.log(sectors)
 }
 
 function get_sectors() {
@@ -29,6 +32,23 @@ function get_sectors() {
     let oReq = new XMLHttpRequest();
     oReq.addEventListener("load", sectListener);
     oReq.open("GET", "/api/sectors");
+    oReq.send();
+}
+
+function exchListener () {
+    let data = JSON.parse(this.responseText)
+    for (let i = 0; i < data.length; i ++){
+        const name = data[i]['name']
+        dropdowns.exchange.push(name)
+    }
+    console.log(dropdowns.exchange)
+}
+
+function get_exchanges() {
+    //console.log("test")
+    let oReq = new XMLHttpRequest();
+    oReq.addEventListener("load", exchListener);
+    oReq.open("GET", "/api/exchanges");
     oReq.send();
 }
 
@@ -103,23 +123,13 @@ function make_editable(cell) {
             const cell = row.cells[i]
 
             if (thead_row.cells[i].innerHTML == "sector") {
-                text_input = document.createElement("select")
-
-                for (let j = 0; j < sectors.length; j++) {
-                    const option = document.createElement("option")
-                    option.value = sectors[j]
-                    option.text = sectors[j]
-
-                    if (cell.innerHTML == sectors[j]) {
-                        option.setAttribute("selected", "true")
-                    }
-
-                    text_input.appendChild(option)
-                }
-
+                text_input = create_dropdown(cell, "sector")
             }
-            else {
+            else if (thead_row.cells[i].innerHTML == "exchange") {
+                text_input = create_dropdown(cell, "exchange")
+            }
 
+            else {
 
                 text_input = document.createElement("input")
                 text_input.setAttribute("size", 10)
@@ -139,6 +149,24 @@ function make_editable(cell) {
         //mark this row as active
         row.setAttribute("active", true)
     }
+}
+
+function create_dropdown(cell, type) {
+    /*
+    create a dropdown whose options are specified in the database
+    */
+    const dropdown = document.createElement("select")
+    for (let j = 0; j < dropdowns[type].length; j++) {
+        const option = document.createElement("option")
+        option.value = dropdowns[type][j]
+        option.text = dropdowns[type][j]
+
+        if (cell.innerHTML == dropdowns[type][j]) {
+            option.setAttribute("selected", "true")
+        }
+        dropdown.appendChild(option)
+    }
+    return dropdown
 }
 
 function save_row(button) {
