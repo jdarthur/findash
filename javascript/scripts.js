@@ -13,32 +13,55 @@ Todo:
 author: jdarthur
 date: 19 Jan 2019
 */
+var types = [
+    "stock",
+    "sector",
+    "exchange"
+]
 
-//These are used to fill dropdowns when you edit a stock.
+var divs = {
+    "stock" : "stocks_div",
+    "sector" : "sectors_div",
+    "exchange" : "exchanges_div"
+}
+
 var dropdowns = {
     "sector" : [],
     "exchange" : []
 }
 
-function reqListener () {
-    /*
-    parse stock data and use it to create a table
-    */
-    let data = JSON.parse(this.responseText)
-    create_table(data)
+var id_fields = {
+    "sector" : "sector_id",
+    "stock" : "symbol",
+    "exchange" : "exchange_id"
 }
 
 function initialize() {
-    /*
-    run functions we need to set up this page
-    */
-    let oReq = new XMLHttpRequest();
-    oReq.addEventListener("load", reqListener);
-    oReq.open("GET", "/api/stocks");
-    oReq.send();
 
-    get_all("sector")
-    get_all("exchange")
+    for(let i = 0; i < types.length; i++) {
+        get_all(types[i])
+    }
+}
+
+
+function listify(dict_list, key) {
+    /*\
+    consume dictlist + key combo, produce a list
+
+    dict_list = [
+        {key1: 1, key2: 1, key3: 3}
+        {key1: 2, key2: 1, key3: 3}
+        {key1: 3, key2: 2, key3: 3}
+        {key1: 4, key2: 2, key3: 3}
+    ]
+        listify(dict_list, key2) == [1, 1, 2, 2]
+
+    */
+    retlist = []
+    for (let i = 0; i< dict_list.length; i++) {
+        retlist.push(dict_list[i][key])
+    }
+    return retlist
 }
 
 function get_all_listener() {
@@ -47,10 +70,14 @@ function get_all_listener() {
     */
     const type = this.datatype
     let data = JSON.parse(this.responseText)
-        for (let i = 0; i < data.length; i ++){
-        const name = data[i]['name']
-        dropdowns[type].push(name)
+    if (type == "sector") {
+        console.log(data)
+        dropdowns["sector"] = listify(data, "name")
     }
+    if (type == "exchange") {
+        dropdowns["exchange"] = listify(data, "name")
+    }
+    create_table(type, data)
 }
 
 function get_all(type) {
@@ -63,16 +90,17 @@ function get_all(type) {
     oReq.datatype = type
 }
 
-function create_table(data) {
+function create_table(type, data) {
     /*
     Create a table with stock data
     */
 
     //create the table itself
-    let div = document.getElementById("main_div")
+    let div = document.getElementById(divs[type])
     let table = document.createElement("table")
     table.setAttribute("class", "tab")
-    table.setAttribute("id", "stocks_table")
+    table.setAttribute("id",  types + "_table")
+    table.setAttribute("data_type", type)
 
 
     //create headers
@@ -82,7 +110,7 @@ function create_table(data) {
     row.setAttribute("class", "tabheader")
     for (let i = 0; i < headers.length; i++) {
         cell = row.insertCell()
-        cell.setAttribute("width", 100/headers.length + "%")
+        cell.setAttribute("width", 100 / headers.length + "%")
         cell.innerHTML = headers[i]
     }
 
@@ -94,7 +122,7 @@ function create_table(data) {
         for (key in stock) {
             cell = row.insertCell()
             cell.setAttribute("width", 100/headers.length + "%")
-            cell.setAttribute("onclick", "make_editable(this)")
+            cell.setAttribute("onclick", "make_editable(this, '" +  type + "')")
             cell.innerHTML = stock[key]
         }
     }
@@ -116,18 +144,20 @@ function add_row(element) {
     */
 
     const row = element.parentNode.parentNode
+    const table = row.parentNode.parentNode
+    const type = table.getAttribute("data_type")
     row.setAttribute("new", "true")
 
-    const header_row = document.getElementById("stocks_table").tHead.rows[0]
+    const header_row = row.parentNode.parentNode.tHead.rows[0]
     for (let i = 1; i < header_row.cells.length; i++) {
         const cell = row.insertCell()
-        cell.setAttribute("onclick", "make_editable(this)")
+        cell.setAttribute("onclick", "make_editable(this, '" + type + "')")
     }
     row.cells[0].innerHTML = ""
     make_editable(row.cells[0])
 }
 
-function make_editable(cell) {
+function make_editable(cell, type) {
     /*
     make a row editable i.e. change text data into input boxes
 
@@ -167,7 +197,8 @@ function make_editable(cell) {
         //add "Save" button
         const button_cell = row.insertCell()
         const button = document.createElement("button")
-        button.setAttribute("onclick", "save_row(this)")
+        const api_endpoint = "/api/" + type
+        button.setAttribute("onclick", "save_row(this, '" + api_endpoint + "', '" + id_fields[type] + "')")
         button.innerHTML = "Save"
         button_cell.appendChild(button)
         //mark this row as active
@@ -191,65 +222,4 @@ function create_dropdown(cell, type) {
         dropdown.appendChild(option)
     }
     return dropdown
-}
-
-function save_row(button) {
-    /*
-    Save a row to the database
-    */
-    const row = button.parentNode.parentNode
-    let post = false
-    if (row.getAttribute("new") == "true") {
-        post = true
-        row.setAttribute("new", "false")
-    }
-
-    //remove plus button
-    button.remove()
-    row.deleteCell(row.cells.length - 1)
-    row.setAttribute("active", false)
-
-    //chaange all inputs back into text
-    for (let i = 0; i < row.cells.length; i++) {
-        const cell = row.cells[i]
-        child = cell.childNodes[0]
-        cell.innerHTML = child.value
-    }
-    data = row2dict(row)
-    save_db(data, post)
-}
-
-function row2dict(row) {
-    /*
-     take a row and convert it into a dictionary
-    */
-    const table = row.parentNode.parentNode
-    const header_row = table.tHead.rows[0]
-    dict = {}
-    for (let i = 0; i < row.cells.length; i++) {
-        const key = header_row.cells[i].innerHTML
-        const cell_value = row.cells[i].innerHTML
-        dict[key] = cell_value
-    }
-    return dict
-}
-
-function putListener () {
-    data = JSON.parse(this.responseText)
-}
-function save_db(data, post=false) {
-    /*
-    save the data into the database via REST
-    */
-    let oReq = new XMLHttpRequest()
-    oReq.addEventListener("load", putListener)
-    if (post) {
-        oReq.open("POST", "/api/stock")
-    }
-    else {
-        oReq.open("PUT", "/api/stock/" + data["symbol"])
-    }
-
-    oReq.setRequestHeader('Content-type','application/json; charset=utf-8');
-    oReq.send(JSON.stringify(data))
 }
