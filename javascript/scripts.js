@@ -41,6 +41,21 @@ function initialize() {
     for(let i = 0; i < types.length; i++) {
         get_all(types[i])
     }
+
+    show(divs['stock'])
+}
+
+function show(div) {
+    const values = Object.values(divs)
+    for (let i = 0; i < values.length; i ++) {
+        const element = document.getElementById(values[i])
+        if (values[i] == div) {
+            element.style.display = "block"
+        }
+        else {
+            element.style.display = "none"
+        }
+    }
 }
 
 
