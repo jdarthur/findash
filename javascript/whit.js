@@ -128,23 +128,32 @@ function submit() {
     }
 
     console.log(dict)
+    do_whittle(dict)
 }
 
-// function add_row(element) {
-//     /*
-//     pop a new row into the table
-//     */
+function whittle_listener() {
+    let data = JSON.parse(this.responseText)
+    console.log(data)
+    let resultsdiv = document.getElementById("results_div")
+    resultsdiv.innerHTML = ""
+    for (let i = 0; i < data['subset'].length; i++) {
+        symbol = data['subset'][i]
+        metric = data['metrics'][symbol]
+        resultsdiv.innerHTML +=  symbol + ": " + metric + "<br>"
+    }
 
-//     const row = element.parentNode.parentNode
-//     const table = row.parentNode.parentNode
-//     const type = table.getAttribute("data_type")
-//     row.setAttribute("new", "true")
+}
 
-//     const header_row = row.parentNode.parentNode.tHead.rows[0]
-//     for (let i = 1; i < header_row.cells.length; i++) {
-//         const cell = row.insertCell()
-//         cell.setAttribute("onclick", "make_editable(this, '" + type + "')")
-//     }
-//     row.cells[0].innerHTML = ""
-//     make_editable(row.cells[0])
-// }
+function do_whittle(data) {
+    let oReq = new XMLHttpRequest()
+    params = ""
+    for (let key in data) {
+        params += key + "=" + data[key] + "&"
+    }
+    params = params.substring(0, params.length - 1)
+    oReq.addEventListener("load", whittle_listener)
+    oReq.open("GET", "/api/whittle?" + params)
+    oReq.send()
+
+}
+
