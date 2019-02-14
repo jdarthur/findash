@@ -44,7 +44,6 @@ function row2dict(row) {
 }
 
 
-
 function putListener () {
     data = JSON.parse(this.responseText)
 }
@@ -64,4 +63,22 @@ function save_db(endpoint, data, id=null, post=false) {
 
     oReq.setRequestHeader('Content-type','application/json; charset=utf-8');
     oReq.send(JSON.stringify(data))
+}
+
+function create_dropdown(options_list) {
+    /*
+    create a dropdown whose options are specified in the database
+    */
+    const dropdown = document.createElement("select")
+    for (let j = 0; j < options_list.length; j++) {
+        const option = document.createElement("option")
+        option.value = options_list[j]
+        option.text = options_list[j]
+
+        if (cell.innerHTML == options_list[j]) {
+            option.setAttribute("selected", "true")
+        }
+        dropdown.appendChild(option)
+    }
+    return dropdown
 }

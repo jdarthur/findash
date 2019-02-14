@@ -192,10 +192,12 @@ function make_editable(cell, type) {
             let text_input = null
             const cell = row.cells[i]
             if (thead_row.cells[i].innerHTML == "sector") {
-                text_input = create_dropdown(cell, "sector")
+                options = dropdowns["sector"]
+                text_input = create_dropdown(options)
             }
             else if (thead_row.cells[i].innerHTML == "exchange") {
-                text_input = create_dropdown(cell, "exchange")
+                options = dropdowns["exchange"]
+                text_input = create_dropdown(options)
             }
 
             else {
@@ -219,22 +221,4 @@ function make_editable(cell, type) {
         //mark this row as active
         row.setAttribute("active", true)
     }
-}
-
-function create_dropdown(cell, type) {
-    /*
-    create a dropdown whose options are specified in the database
-    */
-    const dropdown = document.createElement("select")
-    for (let j = 0; j < dropdowns[type].length; j++) {
-        const option = document.createElement("option")
-        option.value = dropdowns[type][j]
-        option.text = dropdowns[type][j]
-
-        if (cell.innerHTML == dropdowns[type][j]) {
-            option.setAttribute("selected", "true")
-        }
-        dropdown.appendChild(option)
-    }
-    return dropdown
 }

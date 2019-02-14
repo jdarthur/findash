@@ -14,7 +14,7 @@ author: jdarthur
 date: 5 Feb 2019
 */
 
-var YEAR_RANGE = [2000, 2018]
+var YEAR_RANGE = [2000, 2019]
 var MONTH_RANGE = [1, 12]
 var DAY_RANGE = [1, 31]
 
@@ -23,23 +23,32 @@ var HEADERS = [
     "Month",
     "Day",
     "Length",
-    "Whittle Amount"
+    "Whittle Amount",
+    "Whittle Function"
 ]
 
 
 function initialize() {
     console.log("init")
+    get_metrics()
+    //create_inputs()
+}
+
+var metrics = []
+function whitlistener() {
+    const data = JSON.parse(this.responseText)
+    //console.log(data)
+    metrics = data["metrics"]
     create_inputs()
 }
-// function get_all(type) {
-//     let oReq = new XMLHttpRequest()
-//     oReq.addEventListener("load", get_all_listener)
-//     oReq.open("GET", "/api/" + type + "s")
-//     oReq.send()
 
-//     //use this field to know where we save data in the listener
-//     oReq.datatype = type
-// }
+function get_metrics(type) {
+    let oReq = new XMLHttpRequest()
+    oReq.addEventListener("load", whitlistener)
+    oReq.open("GET", "/api/metrics")
+    oReq.send()
+
+}
 
 function create_inputs() {
     /*
@@ -93,6 +102,12 @@ function create_inputs() {
     cell.appendChild(amt)
 
     cell = row.insertCell()
+    console.log(metrics)
+    const metr = create_dropdown(metrics)
+    metr.setAttribute("id", "metric_select")
+    cell.appendChild(metr)
+
+    cell = row.insertCell()
     const submit_button = document.createElement("BUTTON")
     submit_button.innerHTML = "Submit"
     submit_button.setAttribute("onclick", "submit()")
@@ -120,11 +135,13 @@ function submit() {
 
     len = parseInt(document.getElementById("length_select").value)
     amt = parseInt(document.getElementById("amount_select").value)
+    whitf = document.getElementById("metric_select").value
 
     dict = {
         "date" : date,
         "length" : len,
-        "whittle_amount" : amt
+        "whittle_amount" : amt,
+        "whittle_function" : whitf
     }
 
     console.log(dict)
