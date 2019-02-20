@@ -65,7 +65,7 @@ function save_db(endpoint, data, id=null, post=false) {
     oReq.send(JSON.stringify(data))
 }
 
-function create_dropdown(options_list) {
+function create_dropdown(value, options_list) {
     /*
     create a dropdown whose options are specified in the database
     */
@@ -75,7 +75,7 @@ function create_dropdown(options_list) {
         option.value = options_list[j]
         option.text = options_list[j]
 
-        if (cell.innerHTML == options_list[j]) {
+        if (value == options_list[j]) {
             option.setAttribute("selected", "true")
         }
         dropdown.appendChild(option)

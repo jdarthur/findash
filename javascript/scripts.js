@@ -191,13 +191,14 @@ function make_editable(cell, type) {
         for (let i = 0; i < row.cells.length; i++) {
             let text_input = null
             const cell = row.cells[i]
+            const value = cell.innerHTML
             if (thead_row.cells[i].innerHTML == "sector") {
                 options = dropdowns["sector"]
-                text_input = create_dropdown(options)
+                text_input = create_dropdown(value, options)
             }
             else if (thead_row.cells[i].innerHTML == "exchange") {
                 options = dropdowns["exchange"]
-                text_input = create_dropdown(options)
+                text_input = create_dropdown(value, options)
             }
 
             else {
