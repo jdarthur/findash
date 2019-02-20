@@ -137,7 +137,14 @@ function create_table(type, data) {
         for (key in stock) {
             cell = row.insertCell()
             cell.setAttribute("width", 100/headers.length + "%")
-            cell.setAttribute("onclick", "make_editable(this, '" +  type + "')")
+
+            if (key == "symbol") {
+                cell.setAttribute("onclick", "window.location.href='/stock.html?symbol=" + stock[key] + "'")
+            }
+            else {
+                cell.setAttribute("onclick", "make_editable(this, '" +  type + "')")
+            }
+            //cell.setAttribute("onclick", "make_editable(this, '" +  type + "')")
             cell.innerHTML = stock[key]
         }
     }
