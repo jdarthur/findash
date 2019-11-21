@@ -14,9 +14,7 @@ author: jdarthur
 date: 5 Feb 2019
 */
 
-var YEAR_RANGE = [2000, 2019]
-var MONTH_RANGE = [1, 12]
-var DAY_RANGE = [1, 31]
+
 
 var HEADERS = [
     "Year",
@@ -37,9 +35,10 @@ function initialize() {
 var metrics = []
 function whitlistener() {
     const data = JSON.parse(this.responseText)
-    //console.log(data)
+    console.log(data)
     metrics = data["metrics"]
-    create_inputs()
+    function_names = data["function_names"]
+    create_inputs(metrics, function_names)
 }
 
 function get_metrics(type) {
@@ -50,7 +49,7 @@ function get_metrics(type) {
 
 }
 
-function create_inputs() {
+function create_inputs(metrics, names_dict) {
     /*
     Create a table with stock data
     */
@@ -103,7 +102,7 @@ function create_inputs() {
 
     cell = row.insertCell()
     console.log(metrics)
-    const metr = create_dropdown(metrics)
+    const metr = create_dropdown(null, metrics, names_dict)
     metr.setAttribute("id", "metric_select")
     cell.appendChild(metr)
 
@@ -113,17 +112,6 @@ function create_inputs() {
     submit_button.setAttribute("onclick", "submit()")
     cell.appendChild(submit_button)
 
-}
-
-function range_dropdown(start, end) {
-    const select = document.createElement("SELECT")
-    for (let i = start; i <= end; i++) {
-        option = document.createElement("OPTION")
-        option.value = i
-        option.text = i
-        select.appendChild(option)
-    }
-    return select
 }
 
 function submit() {
@@ -156,7 +144,7 @@ function whittle_listener() {
     for (let i = 0; i < data['subset'].length; i++) {
         symbol = data['subset'][i]
         metric = data['metrics'][symbol]
-        resultsdiv.innerHTML +=  symbol + ": " + metric + "<br>"
+        resultsdiv.innerHTML +=  "<a href='/stock.html?symbol=" + symbol  +"'>" + symbol + "<\a>" +  ": " + metric + "<br>"
     }
 
 }

@@ -65,7 +65,7 @@ function save_db(endpoint, data, id=null, post=false) {
     oReq.send(JSON.stringify(data))
 }
 
-function create_dropdown(value, options_list) {
+function create_dropdown(value, options_list, names_dict=null) {
     /*
     create a dropdown whose options are specified in the database
     */
@@ -73,7 +73,12 @@ function create_dropdown(value, options_list) {
     for (let j = 0; j < options_list.length; j++) {
         const option = document.createElement("option")
         option.value = options_list[j]
-        option.text = options_list[j]
+        if (names_dict) {
+            option.text = names_dict[options_list[j]]
+        } else {
+            option.text = options_list[j]
+        }
+
 
         if (value == options_list[j]) {
             option.setAttribute("selected", "true")
