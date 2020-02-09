@@ -5,3 +5,4 @@ services/data/__pycache__
 services/__pycache__
 python/__pycache__
 __pycache__
+python/*.pyc
